@@ -38,7 +38,7 @@ class ConvertJob():
     def run(self):
         self.runBackup()
         if self.convert_heic:
-            self.runHEICConvert()
+            self.runHEICConvert(delete_heic=self.delete_heic)
         if self.rename_e:
             self.runRenameE()
         if self.delete_e:
@@ -70,7 +70,7 @@ class ConvertJob():
         else:
             print('Backup inactive!')
 
-    def runHEICConvert(self, path: str = None):
+    def runHEICConvert(self, path: str = None, delete_heic: bool = False):
         path = path if path else self.path
         if not os.path.exists(self.path):
             raise PathNotExist(self.path)
@@ -83,11 +83,11 @@ class ConvertJob():
                 new_filename = name + sep + self.heic_output_format
                 new_filepath = os.path.join(root, new_filename)
 
-                if self.convert_heic and ext == 'heic' and not os.path.exists(new_filepath):
+                if ext == 'heic' and not os.path.exists(new_filepath):
                     img = Image.open(filepath)
                     img.save(new_filepath)
                     print(f'Converted:\t{filepath}\n       to:\t{new_filepath}')
-                    if self.delete_heic and self.backup_dir not in filepath:
+                    if delete_heic and self.backup_dir not in filepath:
                         os.remove(filepath)
                         print(f'  Deleted:\t{filepath}')
 
@@ -100,7 +100,7 @@ class ConvertJob():
                 filepath = os.path.join(root, file)
                 name, sep, ext = file.lower().rpartition('.')
 
-                if self.rename_e and 'e' in name and self.backup_dir not in filepath:
+                if 'e' in name and self.backup_dir not in filepath:
                     new_filename = name.split('e')[0] + name.split('e')[1] + 'e' + sep + ext
                     new_filepath = os.path.join(root, new_filename)
                     os.rename(filepath, new_filepath)
@@ -115,7 +115,7 @@ class ConvertJob():
                 filepath = os.path.join(root, file)
                 name = file.lower().rpartition('.')[0]
 
-                if self.delete_e and 'e' in name and self.backup_dir not in filepath:
+                if 'e' in name and self.backup_dir not in filepath:
                     os.remove(filepath)
                     print(f'  Deleted:\t{filepath}')
 
