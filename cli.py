@@ -1,5 +1,5 @@
 
-from modules.job import ConvertJob
+from modules import job
 import config as cfg
 
 
@@ -14,7 +14,10 @@ def main():
                'delete_e': cfg.delete_e,
                'delete_aae': cfg.delete_aae}
 
-    ConvertJob(options).run()
+    try:
+        job.ConvertJob(**options).run()
+    except job.PathNotExist:
+        pass
 
 
 if __name__ == '__main__':

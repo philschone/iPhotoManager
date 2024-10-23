@@ -4,27 +4,36 @@ import shutil
 from PIL import Image
 from pillow_heif import register_heif_opener
 
+class PathNotExist(Exception):
+    # Error raised when given path does not exist
+    def __init__(self, path):
+        super().__init__()
+        print(f'Path does not exist: {path}')
 
 class ConvertJob():
-    def __init__(self, options: dict):
-        self.version = '1.0'
+    def __init__(self, path: str = 'C:\\temp\\abc', backup: bool = True, overwrite_backup: bool = False, convert_heic: bool = True, heic_output_format: str = 'png', delete_heic: bool = False, rename_e: bool = False, delete_e: bool = False, delete_aae: bool = False):
+        self.version = '1.0.1'
 
         # job options
-        self.path = options['path']
-        self.backup = options['backup']
-        self.overwrite_backup = options['overwrite_backup']
-        self.convert_heic = options['convert_heic']
-        self.heic_output_format = options['heic_output_format']
-        self.delete_heic = options['delete_heic']
-        self.rename_e = options['rename_e']
-        self.delete_e = False if options['rename_e'] else options['delete_e']
-        self.delete_aae = options['delete_aae']
+        self.path = path
+        self.backup = backup
+        self.overwrite_backup = overwrite_backup
+        self.convert_heic = convert_heic
+        self.heic_output_format = heic_output_format
+        self.delete_heic = delete_heic
+        self.rename_e = rename_e
+        self.delete_e = False if rename_e else delete_e
+        self.delete_aae = delete_aae
 
         self.backup_dir = '_bkp'
 
-        print('\t### Welcome to iPhonePhotoManager ###')
-        print(f'\t ##     Version {self.version}    ##')
-        print('\t  #        Created by Phil        #')
+        print('### Welcome to iPhonePhotoManager ###'.center(50))
+        print(f'## Version {self.version} ##'.center(50))
+        print('# Created by Phil #\n\n\n'.center(50))
+
+        if not os.path.exists(self.path):
+            raise PathNotExist(self.path)
+
 
     def run(self):
         self.runBackup()
@@ -38,12 +47,16 @@ class ConvertJob():
             self.runDeleteAAE()
 
 
-    def runBackup(self):
+
+    def runBackup(self, path: str = None):
+        path = path if path else self.path
+        if not os.path.exists(self.path):
+            raise PathNotExist(self.path)
         if self.backup:
-            bkp_path = os.path.join(self.path, self.backup_dir)
+            bkp_path = os.path.join(path, self.backup_dir)
             while True:
                 try:
-                    shutil.copytree(self.path, bkp_path)
+                    shutil.copytree(path, bkp_path)
                     print(f'Backup saved:\t{bkp_path}')
                 except FileExistsError:
                     if self.overwrite_backup.lower() not in ['s', 'o']:
@@ -57,10 +70,13 @@ class ConvertJob():
         else:
             print('Backup inactive!')
 
-    def runHEICConvert(self):
+    def runHEICConvert(self, path: str = None):
+        path = path if path else self.path
+        if not os.path.exists(self.path):
+            raise PathNotExist(self.path)
         # register a Pillow plugin for HEIF format
         register_heif_opener()
-        for root, dirs, files in os.walk(self.path): # pylint: disable=W0612
+        for root, dirs, files in os.walk(path): # pylint: disable=W0612
             for file in files:
                 filepath = os.path.join(root, file)
                 name, sep, ext = file.lower().rpartition('.')
@@ -75,8 +91,11 @@ class ConvertJob():
                         os.remove(filepath)
                         print(f'  Deleted:\t{filepath}')
 
-    def runRenameE(self):
-        for root, dirs, files in os.walk(self.path): # pylint: disable=W0612
+    def runRenameE(self, path: str = None):
+        path = path if path else self.path
+        if not os.path.exists(self.path):
+            raise PathNotExist(self.path)
+        for root, dirs, files in os.walk(path): # pylint: disable=W0612
             for file in files:
                 filepath = os.path.join(root, file)
                 name, sep, ext = file.lower().rpartition('.')
@@ -87,8 +106,11 @@ class ConvertJob():
                     os.rename(filepath, new_filepath)
                     print(f'Renamed:\t{filepath}\n\tto\t{new_filepath}')
 
-    def runDeleteE(self):
-        for root, dirs, files in os.walk(self.path): # pylint: disable=W0612
+    def runDeleteE(self, path: str = None):
+        path = path if path else self.path
+        if not os.path.exists(self.path):
+            raise PathNotExist(self.path)
+        for root, dirs, files in os.walk(path): # pylint: disable=W0612
             for file in files:
                 filepath = os.path.join(root, file)
                 name = file.lower().rpartition('.')[0]
@@ -97,8 +119,11 @@ class ConvertJob():
                     os.remove(filepath)
                     print(f'  Deleted:\t{filepath}')
 
-    def runDeleteAAE(self):
-        for root, dirs, files in os.walk(self.path): # pylint: disable=W0612
+    def runDeleteAAE(self, path: str = None):
+        path = path if path else self.path
+        if not os.path.exists(self.path):
+            raise PathNotExist(self.path)
+        for root, dirs, files in os.walk(path): # pylint: disable=W0612
             for file in files:
                 filepath = os.path.join(root, file)
                 ext = file.lower().rpartition('.')[2]
