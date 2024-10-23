@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+ehtumbs.db
+__pycache__/
+test*
+venv/
+dist/
+build/
